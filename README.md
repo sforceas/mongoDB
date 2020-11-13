@@ -38,6 +38,15 @@ MongoDB Atlas tiene las siguientes características:
 * Disponible en AWS, GCP y Microsoft Azure
 * Fácil monitoreo y optimización
 
+## Divers de MongoDB para otros lenguajes
+Los drivers las librerías que utilizamos para comunicar nuestra aplicación con nuestra base de datos.
+Sin nuestros drivers no podemos trabajar con nuestros cluster de base de datos.
+Para agregallos, usamos un gestor de dependencias. 
+* Python: bash```python -m pip install pymongo```
+* Node.js: bash```npm install mongodb --save```
+* Ruby: bash```gem install mongoid```
+* GO: bash```dep ensure -add go.mongodb.org/mongo-driver/mongo```
+
 # Instalación y ejecución
 ## Instalación en macOS
 Para realizar la instalación directamente desde bash es necesario tener instalado el paquete brew. 
@@ -82,7 +91,7 @@ mongod
 1. Iniciar sesión en Atlas.
 2. Crear nuevo cluster (Build a Cluster).
     1. Seleccionar proveedor y region más próxima a los usuarios.
-    2. Escojer el tipo de máqiuna (tier) en función de las necesidades.
+    2. Escojer el tipo de máquiuna (tier) en función de las necesidades.
     3. Escojer la version de Atlas.
     4. Nombrar el cluster.
     5. Esperar a que se despliegue el cluster (varios minutos).
@@ -94,7 +103,7 @@ mongod
 5. Click en Connect.
     1. Click en Connect via Mongo Shell.
     2. Verificar que Mongo Shell está instalado.
-    3. Usar el comando: bash```mongo "mongodb+srv://cluster0.wujbs.mongodb.net/<nombredelabasedatos>" --username <nombredelusuarioadmin>```.
+    3. Usar el comando: ```mongo "mongodb+srv://cluster0.wujbs.mongodb.net/<nombredelabasedatos>" --username <nombredelusuarioadmin>```.
     4. Autentificarse con la contraseña del usuario.
     
 ## Interfaz gráfica MongoDB Compass
@@ -106,9 +115,9 @@ mongod
   
 # Creando una base de datos
 ## Comandos básicos de MongoDB
-* Mostrar las bases de datos exitentes bash:``` show dbs```
+* Mostrar las bases de datos exitentes:```show dbs```
 * Mostra la base de datos en la nos encontramos: bash```db```
-* Usar una nueva base de datos (o crearla si no existe): bash ```use basedatos-db```
+* Usar una nueva base de datos (o crearla si no existe):  ```use basedatos-db```
 
 ## Operaciones CRUD (Create, Read, Update, Delete)
 
