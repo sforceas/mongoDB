@@ -457,3 +457,30 @@ mongod
 
 
 ### Eliminar
+
+
+## Operadores de consulta
+
+### Operadores de comparació
+* **$eq** : Operador igual =.
+* **$gt** : Operador mayor que >.
+* **$gte** : Operador mayor o igual que >=.
+* **$lt** : Operador menor que >.
+* **$lte** : Operador manor o igual que >=.
+* **$ne** : Operador distinto de.
+* **$in** : Valores dentro de un arreglo.
+* **$nin** : Valores que no están dentro de un arreglo.
+### Operadores lógicos
+* **$and** : Une queries con un and lógico (similar al uso de una coma en un filtro).
+* **$not** : Invierte el efecto de una query.
+* **$nor** : Une queries con un nor lógico.
+* **$or** : Une queries con un or lógico (si una condición se cumple nos trae el documento) ```db.inventory.find( { $or: [ { status: “A” }, { qty: { $lt: 30 } } ] } )```.
+### Operadores por elemento
+* **$exist** : Documentos que cuentan con un campo específico (Ejemplo: campo edad).
+* **$type** : Documentos que cuentan con un campo de un tipo específico (Ejemplo: tipo datetime).
+### Operadores para arreglos
+* **$all** : Arreglos que contengan todos los elementos de la query ```db.articles.find( { tags: { $all: [ [ “ssl”, “security” ] ] } } )```.
+* **$elemMatch** : Documentos que cumplen la condición del $elemMatch en uno de sus documentos (condiciones dentro de subdocumentos) ```db.inventory.find( { “instock”: { $elemMatch: { qty: 5, warehouse: “A” } } } )```
+* **$size** : Documentos que contienen un campo tipo arreglo de un tamaño específico.
+
+https://docs.mongodb.com/manual/tutorial/query-documents/
