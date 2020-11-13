@@ -29,6 +29,7 @@ Las bases de datos NoSQL tienen 4 grandes familias: Key Value Stores, basadas en
 * Es análogo a un objeto JSON (BSON).Es su codificación en binario y admite otros datos como fechas.
 * La unidad básica dentro de MongoDB.
 * Se identifican por un campo oculto ```_id: 123456789``` que es obligatorio y único. Si no se introduce en la creación del documento, se asigna automaticamente.
+* Máximo de 16MB.
 
 ![comparacion entre conceptos SQL y MongoDB](https://i.pinimg.com/originals/b2/17/79/b21779c78f9474ae2adf947ac6cca20d.png)
 
@@ -45,6 +46,293 @@ Ejemplo de un documento en formato JSON.
         } 
 }
 ````
+
+### Tipos de datos:
+
+#### Strings
+Nos sirven para guardar textos.
+
+#### Boolean
+Información cierta o falsa (true y false).
+
+#### ObjectId: 
+Utilizan el tiempo exacto en el que generamos la consulta para siempre generan IDs únicos. Existen en BSON pero no en JSON.
+
+#### Date 
+Nos sirven para guardar fechas y hacer operaciones de rangos entre ellas.
+
+#### Números
+Doubles, Integers, Integers 64 bits y Decimals.
+
+#### Documentos Embebidos
+Documentos dentro de otros documentos ({}).
+
+#### Arrays []
+Arreglos o listas de cualquier otro tipo de datos, incluso, de otras listas.
+
+Más tipos en https://docs.mongodb.com/manual/reference/bson-types/
+
+### Esquemas y relaciones:
+Los **esquemas** son la forma en que organizamos nuestros documentos en nuestras colecciones. MongoDB no impone ningún esquema pero podemos seguir buenas prácticas y estructurar nuestros documentos de forma parecida (no igual) para aprovechar la flexibilidad y escalabilidad de la base de datos sin aumentar la complejidad de nuestras aplicaciones.
+
+Las **relaciones** son la forma en que nuestras entidades o documentos sen encuentran enlazados unos con otros. Por ejemplo: Una carrera tiene multiples cursos y cada curso tiene multiples clases.
+
+#### Relaciones 1 a 1
+Los **documentos embebidos** nos ayudan a guardar la información en un solo documento y nos ahorra el tiempo que tardamos en consultar diferentes documentos a partir de referencias a colecciones separadas.
+
+```
+Colección: inventario
+
+{   _id:"123456789", 
+    item: "canvas",
+    qty: 100, 
+    tags: ["cotton"], 
+    size: { 
+        h: 28, 
+        w: 35.5, 
+        uom: "cm"
+        } 
+}
+
+```
+
+#### Relaciones 1 a muchos
+**Documentos embebidos** cuando la información no va a cambiar muy frecuentemente y **referencias** cuando si. 
+
+```
+Colección: inventario
+{   _id:123456789, 
+    item: "canvas",
+    tags: ["cotton"], 
+    size: { 
+        h: 28, 
+        w: 35.5, 
+        uom: "cm"
+        } 
+}
+
+
+Colección: stock
+{
+    _id:00000001,
+    inventory_id: 123456789
+    quantity: 100
+}
+```
+
+
+#### Tipos de esquemas
+La arquitectura de la base de datos supone la principal decisión del desarrollo. Tenemos que tener en cuenta varios puntos antes de empezar a realizar el código:
+
+* Qué datos serán consultados con mayor y menor frecuencia. (_El nombre de un articulo se muestra mas frecuentemente que su proveedor._)
+
+* Qué datps serám actualizados con mayor y menor fecuencia. (_El stock de un articulo se actualiza mas frecuentemente que su marca._)
+
+* Que tipo de consultas serán las más y menos frecuentes (y cuál será su coste de procesamiento). (_Se más frecuentemente antes las listas de varios articulos que modificar detalles individuales de uno de ellos. La lista deberia tener una mayor optimización._)
+
+
+* Por dónde se expande la BD a medida que escala y si llegara al tamaño maximo de 16MB por documento.
+(_Los almacenes o contenedores tienen una capacidad de articulos limitada. Pero a medida que se escala se pueden ir añadiendo (lenamente) almacenes con nuevos articulos. El numero de articulos crece mucho más rápido que el de almacenes o contenedores._)
+
+* Que tipo de nuevos datos se prevee incluir a medida que se añaden funciones. (_Podemos requerir de una colección de "usuarios" para acceder al sistema (con contraseña,nombre,apellidos,telefono,email...)._)
+
+
+##### Modo MongoDB con Documentos Embebidos
+Fácil de implementar y acceso a todos los datos de golpe. A medida que crezca la BD los documentos serán más pesados. Esto dificulta actualizar datos de manera frecuente como el stock.
+```
+{
+    "_id": "ALM0201",
+    "ubicación": "Calle Ejemplo 23",
+    "responsable": "Cristina Aguado",
+    "telefono": "999888777",
+    "contenedores":[
+        {
+        "_id": "CNT05123",
+                "tamaño":"40ft",
+                "color": "verde",
+                "articulos": [
+                    {
+                    "_id": "ART661234",
+                    "nombre": "Laptop",
+                    "marca":"superPC",
+                    "proveedor":"UAMZ Inc",
+                    "peligroso": false,
+                    "stock": 240
+                    },                
+                    {
+                    "_id": "ART903452",
+                    "nombre": "BateríaLaptop",
+                    "marca":"superPC",
+                    "proveedor":"UAMZ Inc",
+                    "peligroso": true,
+                    "stock": 350
+                    }
+
+                ]
+                    
+        },
+        {
+            "_id": "CNT02012",
+                    "tamaño":"20ft",
+                    "color": "rojo",
+                    "articulos": [                                      
+                        {
+                        "_id": "ART523642",
+                        "nombre": "Cable HDMI",
+                        "marca":"superCable",
+                        "proveedor":"ExIo SL",
+                        "peligroso": false,
+                        "stock": 1032
+                        }    
+                    ]
+        }
+    ]   
+},
+{
+    "_id": "ALM0111",
+    "ubicación": "Calle Recuerdo 12",
+    "responsable": "Pepe Villuela",
+    "telefono": "666111666",
+    "contenedores":[]
+}
+```
+
+
+##### Modo “SQL” con Referencias
+Las consultas directas por id son muy eficientes. Si se quieren mostrar conjuntos de documentos (como una lista de articulos con su stock) se deben realizar uniones que aumentan el costo de procesado.
+```
+//colección: almacenes
+{
+    "_id": "ALM0201",
+    "ubicación": "Calle Ejemplo 23",
+    "responsable": "Cristina Aguado",
+    "telefono": "999888777",
+    "contenedores":["CNT05123","CNT02012"]
+},
+{
+    "_id": "ALM0111",
+    "ubicación": "Calle Recuerdo 12",
+    "responsable": "Pepe Villuela",
+    "telefono": "666111666",
+    "contenedores":[]
+}
+
+// colección: contenedores
+{
+    "_id": "CNT05123",
+    "tamaño":"40ft",
+    "color": "verde",
+    "articulos": ["ART661234","ART903452"]
+},
+{
+    "_id": "CNT02012",
+    "tamaño":"20ft",
+    "color": "rojo",
+    "articulos": ["ART523642"]
+},
+
+//colección: artículos
+{
+    "_id": "ART661234",
+    "nombre": "Laptop",
+    "marca":"superPC",
+    "proveedor":"UAMZ Inc",
+    "peligroso": false,
+    "stock": 240
+},                
+{
+    "_id": "ART903452",
+    "nombre": "BateríaLaptop",
+    "marca":"superPC",
+    "proveedor":"UAMZ Inc",
+    "peligroso": true,
+    "stock": 350
+},
+{
+    "_id": "ART523642",
+    "nombre": "Cable HDMI",
+    "marca":"superCable",
+    "proveedor":"ExIo SL",
+    "peligroso": false,
+    "stock": 1032
+}
+```
+
+##### Combinación de documento embedido y referencias:
+Mejor opción si tenemos datos con consulta (nombre) update frecuente (stock), y datos con consulta puntual (marca, proveedor…). Nos quiamos todo el costo de cargar los detalles cuando no son necesarios.
+```
+//colección: almacenes
+{
+    "_id": "ALM0201",
+    "ubicación": "Calle Ejemplo 23",
+    "responsable": "Cristina Aguado",
+    "telefono": "999888777",
+    "contenedores":[
+        {
+        "_id": "CNT05123",
+                "tamaño":"40ft",
+                "color": "verde",
+                "articulos": [
+                    {
+                    "_id": "ART661234",
+                    "nombre": "Laptop",
+                    "stock": 240
+                    },                
+                    {
+                    "_id": "ART903452",
+                    "nombre": "BateríaLaptop",
+                    "stock": 350
+                    }
+
+                ]
+                    
+        },
+        {
+            "_id": "CNT02012",
+                    "tamaño":"20ft",
+                    "color": "rojo",
+                    "articulos": [                                      
+                        {
+                        "_id": "ART523642",
+                        "nombre": "Cable HDMI",
+                        "stock": 1032
+                        }    
+                    ]
+        }
+    ]   
+},
+{
+    "_id": "ALM0111",
+    "ubicación": "Calle Recuerdo 12",
+    "responsable": "Pepe Villuela",
+    "telefono": "666111666",
+    "contenedores":[]
+}
+
+//colección: artículos
+{
+    "_id": "ART661234",
+    "nombre": "Laptop",
+    "marca":"superPC",
+    "proveedor":"UAMZ Inc",
+    "peligroso": false,
+},                
+{
+    "_id": "ART903452",
+    "nombre": "BateríaLaptop",
+    "marca":"superPC",
+    "proveedor":"UAMZ Inc",
+    "peligroso": true,
+},
+{
+    "_id": "ART523642",
+    "nombre": "Cable HDMI",
+    "marca":"superCable",
+    "proveedor":"ExIo SL",
+    "peligroso": false,
+}
+```
+
 
 ## Ecosistema de MongoDB
 MongoDB es una base de datos gratis y de código abierto No Relacional basada en documentos que nos permite guardar una gran cantidad de documentos de forma distribuida. Mongo también es el nombre de la compañía que desarrolla el código de esta base de datos.
