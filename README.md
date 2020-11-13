@@ -13,6 +13,38 @@ Las bases de datos NoSQL tienen 4 grandes familias: Key Value Stores, basadas en
 
 * **Document Databases**: Bases de datos basadas en documentos. Nos permiten guardar documentos dentro de colecciones, tiene muy buena performance y flexibilidad que nos permite modelar casos de la vida real de forma sencilla y efectiva. Por ejemplo: MongoDB o CouchBase.
 
+## Funcionamiento de MongoDB
+### Base de datos:
+* Contenedor físico de colecciones.
+* Cada base de datos tiene su archivo propio en el sistema de archivos.
+* Un cluster puede tener múltiples bases de datos.
+
+### Colecciones:
+* Agrupación de documentos.
+* Equivalente a una tabla en las bases de datos relacionales.
+* No impone un esquema, por lo que los documentos pueden tener diferentes campos.
+
+### Documentos:
+* Un registro dentro de una colección.
+* Es análogo a un objeto JSON (BSON).Es su codificación en binario y admite otros datos como fechas.
+* La unidad básica dentro de MongoDB.
+* Se identifican por un campo oculto ```_id: 123456789``` que es obligatorio y único. Si no se introduce en la creación del documento, se asigna automaticamente.
+
+![comparacion entre conceptos SQL y MongoDB](https://i.pinimg.com/originals/b2/17/79/b21779c78f9474ae2adf947ac6cca20d.png)
+
+Ejemplo de un documento en formato JSON.
+```
+{   _id:"123456789", 
+    item: "canvas",
+    qty: 100, 
+    tags: ["cotton"], 
+    size: { 
+        h: 28, 
+        w: 35.5, 
+        uom: "cm"
+        } 
+}
+````
 
 ## Ecosistema de MongoDB
 MongoDB es una base de datos gratis y de código abierto No Relacional basada en documentos que nos permite guardar una gran cantidad de documentos de forma distribuida. Mongo también es el nombre de la compañía que desarrolla el código de esta base de datos.
@@ -115,10 +147,25 @@ mongod
   
 # Creando una base de datos
 ## Comandos básicos de MongoDB
+* Conexión con el cluster de MongoDB Atlas (recuerda añadir tu IP a la lista de IPs permitidas): ```mongo "URL DE NUESTRO CLUSTER",```
 * Mostrar las bases de datos exitentes:```show dbs```
-* Mostra la base de datos en la nos encontramos: bash```db```
+* Mostra la base de datos en la nos encontramos: ```db```
 * Usar una nueva base de datos (o crearla si no existe):  ```use basedatos-db```
+* Listar todos los posibles comandos que podemos ejecutar: ```db.NOMBRE_COLECCIÓN.help()```
 
 ## Operaciones CRUD (Create, Read, Update, Delete)
 
+### Crear
+* Crear una colección (opcional) y añadir un elemento en formato JSON. La base de datos responde true si la operación fue exitosa y crea el campo irrepetible de _id si nosotros no lo especificamos: ```db.NOMBRE_COLECCIÓN.insertOne({ ... }) ```
 
+* Crear una colección (opcional) y añadir algunos elementos en formato JSON. Recibe un array de elementos y devuelve todos los IDs de los elementos que se crearon correctamente.
+```db.NOMBRE_COLECCIÓN.insertMany([{ ... }, { ... }])```
+
+
+### Leer
+* Encontrar elementos en una colección: ```db.NOMBRE_COLECCIÓN.find()``` Podemos aplicar filtros si queremos o encontrar solo el primer resultado con el método ```findOne()```.
+
+### Actualizar
+
+
+### Eliminar
