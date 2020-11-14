@@ -454,7 +454,8 @@ mongod
 * Listar todos los posibles comandos que podemos ejecutar: ```db.NOMBRE_COLECCIÓN.help()```
 
 ## Operaciones CRUD (Create, Read, Update, Delete)
-https://docs.mongodb.com/manual/crud/
+**Version de MongoDB: 4.4**
+Para más información sobre otras versiones: https://docs.mongodb.com/manual/crud/
 
 
 ### Crear (insert)
@@ -476,10 +477,11 @@ En MongoDB, las operaciones de inserción tienen como objetivo una sola colecci�
 
 ### Leer (find)
 
-Las operaciones de lectura recuperan documentos de una colección; es decir, consultar una colección de documentos. MongoDB proporciona los siguientes métodos para leer documentos de una colección:
+Las operaciones de lectura recuperan documentos de una colección; es decir, consultar una colección de documentos. MongoDB proporciona los siguientes métodos para leer documentos de una colección. Puede especificar filtros de consulta o criterios que identifiquen los documentos a devolver.
 
+```
 db.collection.find ()
-Puede especificar filtros de consulta o criterios que identifiquen los documentos a devolver.
+```
 
 * Encontrar elementos en una colección: 
 ```db.NOMBRE_COLECCIÓN.find()``` 
@@ -493,7 +495,7 @@ Puede especificar filtros de consulta o criterios que identifiquen los documento
 ```db.NOMBRE_COLECCIÓN.find({filtro:valorfiltro}, {campoB: 0)```
 
 * Si queremos encontrar un **elemento por su id** es importante aplicar una transformación de tipo de variable de "string" a ObjectId("string").
- ```db.NOMBRE_COLECCIÓN.findOne{'_id': ObjectId(curso['_id'])}```
+ ```db.NOMBRE_COLECCIÓN.find{'_id': ObjectId(curso['_id'])}```
 * Para limitar el numero de resultados de la busqueda se usa el métodod .limit(n) 
 
 ![FindOne](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-find.bakedsvg.svg)
@@ -529,6 +531,7 @@ db.collection.deleteMany () Nuevo en la versión 3.2
 En MongoDB, las operaciones de eliminación tienen como objetivo una sola colección. Todas las operaciones de escritura en MongoDB son atómicas al nivel de un solo documento.
 
 Puede especificar criterios o filtros que identifiquen los documentos que se eliminarán. Estos filtros utilizan la misma sintaxis que las operaciones de lectura.
+
 ![DeleteMany](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-deleteMany.bakedsvg.svg)
 
 ## Operadores de consulta
