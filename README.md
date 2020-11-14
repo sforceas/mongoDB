@@ -443,23 +443,37 @@ mongod
 
 ## Operaciones CRUD (Create, Read, Update, Delete)
 
-### Crear
+### Crear (insert)
 * Crear una colección (opcional) y añadir un elemento en formato JSON. La base de datos responde true si la operación fue exitosa y crea el campo irrepetible de _id si nosotros no lo especificamos: ```db.NOMBRE_COLECCIÓN.insertOne({ ... }) ```
 
 * Crear una colección (opcional) y añadir algunos elementos en formato JSON. Recibe un array de elementos y devuelve todos los IDs de los elementos que se crearon correctamente.
 ```db.NOMBRE_COLECCIÓN.insertMany([{ ... }, { ... }])```
 
 
-### Leer
-* Encontrar elementos en una colección: ```db.NOMBRE_COLECCIÓN.find()``` 
-* Encontrar solo el primer resultado con el método ```db.NOMBRE_COLECCIÓN.findOne()```
-* Podemos aplicar filtros y mostrar todos los elementos: ```db.NOMBRE_COLECCIÓN.find({filtroA:"valor1", filtroB:"valor2"})```
-* Podemos aplicar filtros y mostrar uno de los elementos:```db.NOMBRE_COLECCIÓN.findOene({filtroA:"valor1",filtroB:"valor2"})```
-* Leer solo ciertos campos del elemento (se escribe un 1): ```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoA: 1, campoC: 1)```
-* Leer todos los campos de un elemento excluyendo (se escribe un 0): ```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoB: 0)```
+### Leer (find)
+* Encontrar elementos en una colección: 
+```db.NOMBRE_COLECCIÓN.find()``` 
+* Encontrar solo el primer resultado con el método 
+```db.NOMBRE_COLECCIÓN.findOne()```
+* Podemos aplicar filtros y mostrar todos los elementos: 
+```db.NOMBRE_COLECCIÓN.find({filtroA:"valor1", filtroB:"valor2"})```
+* Podemos aplicar filtros y mostrar uno de los elementos:
+```db.NOMBRE_COLECCIÓN.findOene({filtroA:"valor1",filtroB:"valor2"})```
+* Leer solo ciertos campos del elemento (se escribe un 1): 
+```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoA: 1, campoC: 1)```
+* Leer todos los campos de un elemento excluyendo (se escribe un 0): 
+```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoB: 0)```
 
-### Actualizar
+### Actualizar (set)
+Para actualizar un documento, primero debemos aplicar un filtro para encontrar este documento y posteriormente actualiar los datos con el método $set.
+Al final de la consulta, añadimos el método .modified_count para que MongoDB nos devuelva el número de documentos modificados.
 
+Esquema: 
+```db.cursos.update_one({filtros}, {$set: {campo:valor}}).modified_count```
+
+
+Ejemplo:
+```db.cursos.update_one({'_id': ObjectId(curso['_id'])}, {'$set': {'nombre': curso['nombre'], 'descripcion': curso['descripcion'], 'clases': curso['clases']}}).modified_count```
 
 ### Eliminar
 
