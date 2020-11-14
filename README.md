@@ -451,7 +451,12 @@ mongod
 
 
 ### Leer
-* Encontrar elementos en una colección: ```db.NOMBRE_COLECCIÓN.find()``` Podemos aplicar filtros si queremos o encontrar solo el primer resultado con el método ```findOne()```.
+* Encontrar elementos en una colección: ```db.NOMBRE_COLECCIÓN.find()``` 
+* Encontrar solo el primer resultado con el método ```db.NOMBRE_COLECCIÓN.findOne()```
+* Podemos aplicar filtros y mostrar todos los elementos: ```db.NOMBRE_COLECCIÓN.find({filtroA:"valor1", filtroB:"valor2"})```
+* Podemos aplicar filtros y mostrar uno de los elementos:```db.NOMBRE_COLECCIÓN.findOene({filtroA:"valor1",filtroB:"valor2"})```
+* Leer solo ciertos campos del elemento (se escribe un 1): ```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoA: 1, campoC: 1)```
+* Leer todos los campos de un elemento excluyendo (se escribe un 0): ```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoB: 0)```
 
 ### Actualizar
 
