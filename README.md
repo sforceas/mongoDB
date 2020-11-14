@@ -362,10 +362,22 @@ MongoDB Atlas tiene las siguientes características:
 Los drivers las librerías que utilizamos para comunicar nuestra aplicación con nuestra base de datos.
 Sin nuestros drivers no podemos trabajar con nuestros cluster de base de datos.
 Para agregallos, usamos un gestor de dependencias. 
-* Python: bash```python -m pip install pymongo```
-* Node.js: bash```npm install mongodb --save```
-* Ruby: bash```gem install mongoid```
-* GO: bash```dep ensure -add go.mongodb.org/mongo-driver/mongo```
+* Python: 
+```bash 
+python -m pip install pymongo
+```
+* Node.js: 
+```bash 
+npm install mongodb --save
+```
+* Ruby: 
+```bash 
+gem install mongoid
+```
+* GO: 
+```bash 
+dep ensure -add go.mongodb.org/mongo-driver/mongo
+```
 
 # Instalación y ejecución
 ## Instalación en macOS
@@ -442,44 +454,82 @@ mongod
 * Listar todos los posibles comandos que podemos ejecutar: ```db.NOMBRE_COLECCIÓN.help()```
 
 ## Operaciones CRUD (Create, Read, Update, Delete)
+https://docs.mongodb.com/manual/crud/
+
 
 ### Crear (insert)
+Las operaciones de creación o inserción agregan nuevos documentos a una colección. Si la colección no existe actualmente, las operaciones de inserción crearán la colección.
+
+MongoDB proporciona los siguientes métodos para insertar documentos en una colección:
+```
+db.collection.insertOne () Nuevo en la versión 3.2
+db.collection.insertMany () Nuevo en la versión 3.2
+```
+En MongoDB, las operaciones de inserción tienen como objetivo una sola colección. Todas las operaciones de escritura en MongoDB son atómicas al nivel de un solo documento.
+
 * Crear una colección (opcional) y añadir un elemento en formato JSON. La base de datos responde true si la operación fue exitosa y crea el campo irrepetible de _id si nosotros no lo especificamos: ```db.NOMBRE_COLECCIÓN.insertOne({ ... }) ```
 
 * Crear una colección (opcional) y añadir algunos elementos en formato JSON. Recibe un array de elementos y devuelve todos los IDs de los elementos que se crearon correctamente.
 ```db.NOMBRE_COLECCIÓN.insertMany([{ ... }, { ... }])```
 
+![InsertOne](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-insertOne.bakedsvg.svg)
 
 ### Leer (find)
+
+Las operaciones de lectura recuperan documentos de una colección; es decir, consultar una colección de documentos. MongoDB proporciona los siguientes métodos para leer documentos de una colección:
+
+db.collection.find ()
+Puede especificar filtros de consulta o criterios que identifiquen los documentos a devolver.
+
 * Encontrar elementos en una colección: 
 ```db.NOMBRE_COLECCIÓN.find()``` 
-* Encontrar solo el primer resultado con el método 
-```db.NOMBRE_COLECCIÓN.findOne()```
 * Podemos aplicar filtros y mostrar todos los elementos: 
 ```db.NOMBRE_COLECCIÓN.find({filtroA:"valor1", filtroB:"valor2"})```
 * Podemos aplicar filtros y mostrar uno de los elementos:
-```db.NOMBRE_COLECCIÓN.findOene({filtroA:"valor1",filtroB:"valor2"})```
+```db.NOMBRE_COLECCIÓN.find({filtroA:"valor1",filtroB:"valor2"}).limit(1)```
 * Leer solo ciertos campos del elemento (se escribe un 1): 
-```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoA: 1, campoC: 1)```
+```db.NOMBRE_COLECCIÓN.find({filtro:valorfiltro}, {campoA: 1, campoC: 1)```
 * Leer todos los campos de un elemento excluyendo (se escribe un 0): 
-```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoB: 0)```
+```db.NOMBRE_COLECCIÓN.find({filtro:valorfiltro}, {campoB: 0)```
 
 * Si queremos encontrar un **elemento por su id** es importante aplicar una transformación de tipo de variable de "string" a ObjectId("string").
  ```db.NOMBRE_COLECCIÓN.findOne{'_id': ObjectId(curso['_id'])}```
+* Para limitar el numero de resultados de la busqueda se usa el métodod .limit(n) 
+
+![FindOne](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-find.bakedsvg.svg)
+
 
 ### Actualizar (set)
-Para actualizar un documento, primero debemos aplicar un filtro para encontrar este documento y posteriormente actualiar los datos con el método $set.
-Al final de la consulta, añadimos el método .modified_count para que MongoDB nos devuelva el número de documentos modificados.
+Las operaciones de actualización modifican los documentos existentes en una colección. MongoDB proporciona los siguientes métodos para actualizar documentos de una colección:
+```
+db.collection.updateOne () Nuevo en la versión 3.2
+db.collection.updateMany () Nuevo en la versión 3.2
+db.collection.replaceOne () Nuevo en la versión 3.2
+```
+En MongoDB, las operaciones de actualización tienen como objetivo una sola colección. Todas las operaciones de escritura en MongoDB son atómicas al nivel de un solo documento.
+
+Puede especificar criterios o filtros que identifiquen los documentos a actualizar. Estos filtros utilizan la misma sintaxis que las operaciones de lectura.
 
 Esquema: 
-```db.cursos.update_one({filtros}, {$set: {campo:valor}}).modified_count```
-
+```db.cursos.updateOne({filtros}, {$set: {campo:valor}}).modified_count```
+```db.cursos.updateMany({filtros}, {$set: {campo:valor}}).modified_count```
 
 Ejemplo:
-```db.cursos.update_one({'_id': ObjectId(curso['_id'])}, {'$set': {'nombre': curso['nombre'], 'descripcion': curso['descripcion'], 'clases': curso['clases']}}).modified_count```
+```db.cursos.updateOne({'_id': ObjectId(curso['_id'])}, {'$set': {'nombre': curso['nombre'], 'descripcion': curso['descripcion'], 'clases': curso['clases']}}).modified_count```
+
+![UpdateMany](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-updateMany.bakedsvg.svg)
+
 
 ### Eliminar
+Las operaciones de eliminación eliminan documentos de una colección. MongoDB proporciona los siguientes métodos para eliminar documentos de una colección:
+```
+db.collection.deleteOne () Nuevo en la versión 3.2
+db.collection.deleteMany () Nuevo en la versión 3.2
+```
+En MongoDB, las operaciones de eliminación tienen como objetivo una sola colección. Todas las operaciones de escritura en MongoDB son atómicas al nivel de un solo documento.
 
+Puede especificar criterios o filtros que identifiquen los documentos que se eliminarán. Estos filtros utilizan la misma sintaxis que las operaciones de lectura.
+![DeleteMany](https://docs.mongodb.com/manual/_images/crud-annotated-mongodb-deleteMany.bakedsvg.svg)
 
 ## Operadores de consulta
 
