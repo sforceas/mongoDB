@@ -559,3 +559,131 @@ Puede especificar criterios o filtros que identifiquen los documentos que se eli
 * **$size** : Documentos que contienen un campo tipo arreglo de un tamaño específico.
 
 https://docs.mongodb.com/manual/tutorial/query-documents/
+
+
+
+# Querys complejas
+
+```
+# -----------------Carreras-------------------------
+
+
+def crear_carrera(json):
+    return str(db.carreras.insert_one(json).inserted_id)
+
+
+def consultar_carrera_por_id(carrera_id):
+    return dumps(db.carreras.find_one({'_id': ObjectId(carrera_id)}))
+
+
+def actualizar_carrera(carrera):
+    # Esta funcion solamente actualiza nombre y descripcion de la carrera
+    return str(db.carreras.update_one({'_id': ObjectId(carrera['_id'])},
+                           {'$set': {'nombre': carrera['nombre'], 'descripcion': carrera['descripcion']}})
+               .modified_count)
+
+
+def borrar_carrera_por_id(carrera_id):
+    return str(db.carreras.delete_one({'_id': ObjectId(carrera_id)}).deleted_count)
+
+
+# Clase de operadores
+def consultar_carreras(skip, limit):
+    return dumps(db.carreras.find({}).skip(int(skip)).limit(int(limit)))
+
+
+def agregar_curso(json):
+    curso = consultar_curso_por_id_proyeccion(json['id_curso'], proyeccion={'nombre': 1})
+    return str(db.carreras.update_one({'_id': ObjectId(json['id_carrera'])}, {'$addToSet': {'cursos': curso}}).modified_count)
+
+
+def borrar_curso_de_carrera(json):
+    return str(db.carreras.update_one({'_id': ObjectId(json['id_carrera'])}, {'$pull': {'cursos': {'_id': ObjectId(json['id_curso'])}}}).modified_count)
+
+# -----------------Cursos-------------------------
+
+
+def crear_curso(json):
+    return str(db.cursos.insert_one(json).inserted_id)
+
+
+def consultar_curso_por_id(id_curso):
+    return dumps(db.cursos.find_one({'_id': ObjectId(id_curso)}))
+
+
+def actualizar_curso(curso):
+    # Esta funcion solamente actualiza nombre, descripcion y clases del curso
+    return str(db.cursos.update_one({'_id': ObjectId(curso['_id'])},  {'$set': {'nombre': curso['nombre'],'descripcion': curso['descripcion'],'clases': curso['clases']}}).modified_count)
+
+
+def borrar_curso_por_id(curso_id):
+    return str(db.cursos.delete_one({'_id': ObjectId(curso_id)}).deleted_count)
+
+
+def consultar_curso_por_id_proyeccion(id_curso, proyeccion=None):
+    return db.cursos.find_one({'_id': ObjectId(id_curso)}, proyeccion)
+
+```
+    
+
+
+## Usando operadores para realizar Updates en arreglos
+
+En este enlace se encuentran la referencia a todos los operadores que se encuentran en MongoDb, antes de emplear lógica adicional para realizar una operación vale la pena echar una ojeada a la lista de operadores que en algunos casos pueden facilitar mucho las cosas.
+
+Para realizar las relaciones entre carreras y cursos empleamos los operadores $addToSet y $pull estos operadores sirven para agregar $addToSet o retirar $pulldocumentos de un arreglo dependiendo del filtro que aplicamos.
+
+Así cuando ejecutamos ```db.carreras.update_one({'_id': ObjectId(json['id_carrera'])}, {'$addToSet': {'cursos': curso}}) ``` $addToSet lo que hace es agregar el objeto curso al arreglo cursos, si el arreglo cursos no existe lo crea.
+
+Para retirar un curso de una carrera usamos $pull de la siguiente manera ```db.carreras.update_one({'_id': ObjectId(json['id_carrera'])}, {'$pull': {'cursos': {'_id': ObjectId(json['id_curso'])}}})``` aquí $pull recibe un filtro y todos los elementos del arreglo cursos que cumplan con ese filtro serán borrados.
+
+skip() y limit()
+
+Si tenemos una consulta que retorna 100 documentos pero solamente necesitamos los documentos del número 20 al 30, la manera de hacerlo es usando skip() y limit().
+
+Si tenemos 100 carreras y solamente queremos las primeras 10 podemos ejecutar ```db.carreras.find({}).limit(10)``` esta nos traerá las primeras 10 carreras.
+
+Ahora si queremos las carreras ubicadas en los puestos 40 y 50 lo que debemos hacer es ```db.carreras.find({}).skip(40).limit(10)```
+
+Como vemos skip() y limit() son muy útiles para realizar paginaciones, cuando tenemos consultas que retornan muchos documentos y que en algunos casos la totalidad de los documentos no es utilizada es buena práctica limitar el número de documentos que hacemos viajar entre nuestro cluster de base de datos y el código de nuestra aplicación. Esto puede ayudar a mejorar la velocidad con que las consultas son procesadas por la aplicación.
+
+Ejercicios de práctica usando operadores
+```
+// Arreglo de ejemplo
+use test
+db.inventory.insertMany(
+
+[{ _id: 1, item: { name: "ab", code: "123" }, qty: 15, tags: [ "A", "B", "C" ] },
+{ _id: 2, item: { name: "cd", code: "123" }, qty: 20, tags: [ "B" ] },
+{ _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] },
+{ _id: 4, item: { name: "xy", code: "456" }, qty: 30, tags: [ "B", "A" ] },
+{ _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }]
+
+)
+
+// $or
+db.inventory.find({$or: [{qty: {$gt: 25}}, {qty: {$lte: 15}}]})
+
+// $gte
+db.inventory.find({qty: {$gte: 25}})
+
+// $size
+db.inventory.find({tags: {$size: 2}})
+
+// Insertemos estos documentos de ejemplo en la colección survey
+db.survey.insertMany([
+{ _id: 1, results: [ { product: "abc", score: 10 }, { product: "xyz", score: 5 } ] }
+{ _id: 2, results: [ { product: "abc", score: 8 }, { product: "xyz", score: 7 } ] }
+{ _id: 3, results: [ { product: "abc", score: 7 }, { product: "xyz", score: 8 } ] }
+])
+
+// $elemMatch
+db.survey.find(
+   { results: { $elemMatch: { product: "xyz", score: { $gte: 8 } } } }
+)
+
+db.survey.find(
+   { results: { $elemMatch: { product: "xyz" } } }```
+
+```
+
