@@ -464,6 +464,9 @@ mongod
 * Leer todos los campos de un elemento excluyendo (se escribe un 0): 
 ```db.NOMBRE_COLECCIÓN.findOne({filtro:valorfiltro}, {campoB: 0)```
 
+* Si queremos encontrar un **elemento por su id** es importante aplicar una transformación de tipo de variable de "string" a ObjectId("string").
+ ```db.NOMBRE_COLECCIÓN.findOne{'_id': ObjectId(curso['_id'])}```
+
 ### Actualizar (set)
 Para actualizar un documento, primero debemos aplicar un filtro para encontrar este documento y posteriormente actualiar los datos con el método $set.
 Al final de la consulta, añadimos el método .modified_count para que MongoDB nos devuelva el número de documentos modificados.
