@@ -379,6 +379,32 @@ gem install mongoid
 dep ensure -add go.mongodb.org/mongo-driver/mongo
 ```
 
+# Recomendaciones de arquitectura de BD en MongoDB
+
+* Usar proveedores cloud con alta disponibilidad: AWS, Google Cloud o Azure son muy buenas opciones.
+* No te compliques pensando en administración de servidores con MongoDB, servicios como MongoDB Atlas o mlab son muy buenas opciones.
+* Guardar las credenciales en variables de entorno (```export VARIABLE = valor```) o archivos de configuración fuera del proyecto.
+* Asegura que tu cluster se encuentra en la misma región del proveedor que tu aplicación.
+* Haz VPC peering entre la VPC de tu aplicación y la VPC de tu cluster.
+* Cuida la lista de IPs blancas.
+* Puedes habilitar la autenticación en dos pasos.
+* Actualiza constantemente tu versión de MongoDB.
+* Separa los ambientes de desarrollo, test y producción.
+* Habilita la opción de almacenamiento encriptado.
+
+**Lecturas recomendadas:**
+* 14 Things I Wish I’d Known When Starting with MongoDB 
+https://www.infoq.com/articles/Starting-With-MongoDB/
+* Time Series Data and MongoDB: Part 2 – Schema Design Best Practices
+https://www.mongodb.com/blog/post/time-series-data-and-mongodb-part-2-schema-design-best-practices
+
+* Performance Best Practices: MongoDB Data Modeling and Memory Sizing
+https://www.mongodb.com/blog/post/performance-best-practices-mongodb-data-modeling-and-memory-sizing
+
+* What is MongoDB Sharding and the Best Practices?
+https://geekflare.com/mongodb-sharding-best-practices/
+
+
 # Instalación y ejecución
 ## Instalación en macOS
 Para realizar la instalación directamente desde bash es necesario tener instalado el paquete brew. 
@@ -712,3 +738,36 @@ db.inventory.disctinct()
 
 ![SPA reduce ejemplo](https://docs.mongodb.com/manual/_images/distinct.bakedsvg.svg)
 
+
+
+# Indices para consultas rápidas
+Para comparar la diferencia entre el rendimiento puedes utilizar el comando ```explain('executionStats')```
+
+por ejemplo, en una colección de ejemplo students (la puedes obtener acá e importar a atlas de acuerdo a esta guía). Vamos a buscar los estudiantes cuyo nombre sea ‘Tandra Meadows’
+```
+db.students.find({name: 'Tandra Meadows'}).explain('executionStats')
+```
+
+en los resultados vas a encontrar executionTimeMillis y totalDocsExamined, en nuestro ejemplo los valores son 0 y 200 respectivamente. Este es un conjunto muy pequeño, por ello el tiempo de ejecución es irrelevante, pero el número de documentos examinados es el total de elementos en la colección (imagina 1 billón de registros).
+
+ahora vamos a agregar un índice de tipo texto a nuestro campo y comparar los resultados haciendo una consulta que utilice este índice
+```
+db.students.createIndex({name: 'text'})
+db.students.find({$text: {$search: 'Tandra Meadows'}}).explain('executionStats')
+```
+o dado que agregamos el índice de texto podemos utilizar solo un nombre y sin importar mayúsculas o minúsculas
+
+```
+db.students.find({$text: {$search: 'tandra'}}).explain('executionStats')
+ahora el número de documentos examinados es de 2 solamente.
+```
+bonus
+
+Para hacer una consulta ‘parcial’, es decir, que incluya solo una parte del nombre -como en la clase cuando se busca mongo y no arroja resultados hasta que se utiliza mongodb- podemos utilizar expresiones regulares (el operador $regex) sin importar las mayúsculas y minúsculas, case insensitive (/i), de la siguiente manera.
+
+```
+db.cursos.find({nombre: {$regex: /mongo/i}})
+el detalle es que en la búsqueda de expresiones regulares no se utiliza el índice que creamos ☹️
+```
+
+además el problema con los índices de texto es que si indexas varios campos los resultados de la búsqueda incluirán todos ellos, es decir, no puedes especificar el campo sobre el que se hará la búsqueda. En nuestro ejemplo, si agregamos un campo tutor con el nombre del tutor y creamos un índice de texto para este nuevo campo, al buscar los estudiantes nos incluirá también aquellos que tengan como tutor alguien llamado ‘Tandra’. Esto se puede resolver agregando un segundo filtro de tipo regex.
